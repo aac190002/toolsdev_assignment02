@@ -53,6 +53,8 @@ class SmartSaveUI(QtWidgets.QDialog):
         # Version
         self.version_lbl = QtWidgets.QLabel("Version")
         self.version_spinbox = QtWidgets.QSpinBox()
+        self.version_spinbox.setMinimum(1)
+        self.version_spinbox.setMaximum(999)
         self.version_spinbox.setValue(self.scene.version)
 
         # Extension
