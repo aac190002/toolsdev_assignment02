@@ -1,6 +1,8 @@
 import logging
 import pymel.core as pmc
+from pymel.core.system import getFileList
 from pymel.core.system import Path
+import re
 
 
 log = logging.getLogger(__name__)
@@ -74,4 +76,35 @@ class SceneFile(object):
             Path(self.dir).makedirs_p()
             pmc.system.saveAs(self.path())
 
+    def _increment(self):
+        """Updates the version number to the next available version.
 
+        Returns:
+            version: The new version number
+        """
+        # Get all the files (don't filter yet, will use regex)
+        all_files = getFileList(folder=self.dir, filespec="*")
+
+        # Filter for valid files names
+        regex_pattern = "{descriptor}_[0-9]{{3}}\\.{ext}"
+        regex_str = regex_pattern.format(descriptor=self.descriptor,
+                                         ext=self.ext)
+        regex = re.compile(regex_str)
+        valid_files = filter(regex.match, all_files)
+
+        if len(valid_files) == 0:
+            log.warning("No other versions found. Setting version to 001...")
+            max_version = 0
+        else:
+            # Extract version numbers, get highest number
+            front_offset = len(self.descriptor) + 1
+            back_offset = -1 * (len(self.ext) + 1)
+            version_numbers = [int(filename[front_offset:back_offset]) for filename in valid_files]
+            max_version = max(version_numbers)
+
+            if max_version >= 999:
+                log.warning("Reached max version number 999. Setting version to 1000...")
+
+        self.version = max_version + 1
+
+        return self.version
