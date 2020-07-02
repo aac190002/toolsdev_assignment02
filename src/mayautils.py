@@ -21,11 +21,46 @@ class SceneFile(object):
 
     """
 
-    def __init__(self, dir='', descriptor='main', version=1, ext="ma"):
+    def __init__(self, dir='', descriptor='main', version=1, ext="ma", current_scene=False):
+        """Constructs SceneFile from the directory, descriptor, version, and extension
+
+        Other Params:
+            current_scene: Construct SceneFile from getting the current scene info instead if True, otherwise use
+                provided parameters
+        """
+        # If the old file name was invalid, need to save a copy
+        need_to_save = False
+
+        if current_scene:
+            # Get directory and extension from the path
+            full_path = Path(pmc.system.sceneName())
+            dir = full_path.dirname()
+            ext = full_path.ext[1:]
+
+            # Remove extension from base name and check for a version number
+            back_offset = -1*(len(ext) + 1)
+            base_name = full_path.basename()[:back_offset]
+            regex_str = ".*_[0-9]{3}$"
+            regex = re.compile(regex_str)
+            print(base_name)
+
+            if regex.match(base_name):
+                # The file already has a version number, use it
+                descriptor = base_name[:-4]
+                version = int(base_name[-3:])
+            else:
+                # Otherwise the whole base name is the descriptor, use the default version number and save a copy
+                log.warning("No version number, saving a copy with version 1")
+                descriptor = base_name
+                need_to_save = True
+
         self._dir = Path(dir)
         self.descriptor = descriptor
         self.version = version
         self.ext = ext
+
+        if need_to_save:
+            self.save()
 
     @property
     def dir(self):
