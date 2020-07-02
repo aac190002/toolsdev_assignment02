@@ -42,7 +42,7 @@ class SceneFile(object):
 
             if not scene_name:
                 # If file has never been saved, assume the current workspace under 'scenes'
-                dir = pmc.system.Workspace.getPath()/"scenes"
+                dir = pmc.system.Workspace.getPath() / "scenes"
             else:
                 # Get directory and extension from the path
                 full_path = Path(scene_name)
@@ -52,12 +52,12 @@ class SceneFile(object):
                 # Remove extension from base name and check for a version number
                 back_offset = -1*(len(ext) + 1)
                 base_name = full_path.basename()[:back_offset]
-                regex_str = ".*_[0-9]{3}$"
+                regex_str = ".*_v[0-9]{3}$"
                 regex = re.compile(regex_str)
 
                 if regex.match(base_name):
                     # The file already has a version number, use it
-                    descriptor = base_name[:-4]
+                    descriptor = base_name[:-5]
                     version = int(base_name[-3:])
                 else:
                     # Otherwise the whole base name is the descriptor, use the default version number and save a copy
@@ -80,13 +80,13 @@ class SceneFile(object):
     def basename(self):
         """Return a scene file name.
 
-        e.g. ship_001.ma, car_011.hip
+        e.g. ship_v001.ma, car_v011.hip
 
-        Returns:\
+        Returns:
             str: The name of the scene file.
 
         """
-        name_pattern = "{descriptor}_{version:03d}.{ext}"
+        name_pattern = "{descriptor}_v{version:03d}.{ext}"
         name = name_pattern.format(descriptor=self.descriptor,
                                    version=self.version,
                                    ext=self.ext)
@@ -133,19 +133,19 @@ class SceneFile(object):
         all_files = pmc.system.getFileList(folder=self.dir, filespec="*")
 
         # Filter for valid files names
-        regex_pattern = "{descriptor}_[0-9]{{3}}\\.{ext}"
+        regex_pattern = "{descriptor}_v[0-9]{{3}}\\.{ext}"
         regex_str = regex_pattern.format(descriptor=self.descriptor,
                                          ext=self.ext)
         regex = re.compile(regex_str)
         valid_files = filter(regex.match, all_files)
 
         if len(valid_files) == 0:
-            log.warning("No other versions found. Setting version to 001...")
+            log.warning("No other versions found. Setting version to 1...")
             max_version = 0
         else:
             # Extract version numbers, get highest number
-            front_offset = len(self.descriptor) + 1
-            back_offset = -1 * (len(self.ext) + 1)
+            front_offset = len(self.descriptor) + 2  # +2 to get rid of underscore and v
+            back_offset = -1 * (len(self.ext) + 1)  # +1 to get rid of period
             version_numbers = [int(filename[front_offset:back_offset]) for filename in valid_files]
             max_version = max(version_numbers)
 
