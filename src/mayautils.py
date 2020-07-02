@@ -1,6 +1,5 @@
 import logging
 import pymel.core as pmc
-from pymel.core.system import getFileList
 from pymel.core.system import Path
 import re
 
@@ -66,24 +65,30 @@ class SceneFile(object):
         """Saves the scene file.
 
         Returns:
-            obj: 'Path': The path to the scene file if successful, None, otherwise.
+            obj: 'Path': The path to the scene file if successful, otherwise None.
 
         """
         try:
-            pmc.system.saveAs(self.path())
-        except RuntimeError:
-            log.warning("Missing directories. Creating directories...")
-            Path(self.dir).makedirs_p()
-            pmc.system.saveAs(self.path())
+            try:
+                pmc.system.saveAs(self.path())
+            except RuntimeError:
+                log.warning("Missing directories. Creating directories...")
+                Path(self.dir).makedirs_p()
+                pmc.system.saveAs(self.path())
+            return self.path()
+        except IOError:
+            log.error("IOError occurred while saving.")
+            return None
 
     def _increment(self):
         """Updates the version number to the next available version.
 
         Returns:
             version: The new version number
+
         """
         # Get all the files (don't filter yet, will use regex)
-        all_files = getFileList(folder=self.dir, filespec="*")
+        all_files = pmc.system.getFileList(folder=self.dir, filespec="*")
 
         # Filter for valid files names
         regex_pattern = "{descriptor}_[0-9]{{3}}\\.{ext}"
@@ -108,3 +113,13 @@ class SceneFile(object):
         self.version = max_version + 1
 
         return self.version
+
+    def increment_and_save(self):
+        """Increments the version number and saves
+
+        Returns:
+            obj: 'Path': The path to the scene file if successful, otherwise None.
+
+        """
+        self._increment()
+        return self.save()
