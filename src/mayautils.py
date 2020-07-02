@@ -1,3 +1,12 @@
+"""
+mayautils.py
+Asmita Chitale
+Assignment 02
+ATCM 3311.0U1
+06/26/2020
+"""
+
+
 import logging
 import pymel.core as pmc
 from pymel.core.system import Path
