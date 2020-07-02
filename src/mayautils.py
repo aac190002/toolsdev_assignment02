@@ -40,10 +40,8 @@ class SceneFile(object):
         if current_scene:
             scene_name = pmc.system.sceneName()
 
-            if not scene_name:
-                # If file has never been saved, assume the current workspace under 'scenes'
-                dir = pmc.system.Workspace.getPath() / "scenes"
-            else:
+            # If file has never been saved, use defaults instead
+            if scene_name:
                 # Get directory and extension from the path
                 full_path = Path(scene_name)
                 dir = full_path.dirname()
@@ -60,9 +58,8 @@ class SceneFile(object):
                     descriptor = base_name[:-5]
                     version = int(base_name[-3:])
                 else:
-                    # Otherwise the whole base name is the descriptor, use the default version number and save a copy
-                    log.warning("No version number, setting version to 1")
-                    descriptor = base_name
+                    # Otherwise use defaults
+                    log.warning("Invalid naming format, using defaults.")
 
         self._dir = Path(dir)
         self.descriptor = descriptor
