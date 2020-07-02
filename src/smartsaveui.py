@@ -110,6 +110,7 @@ class SmartSaveUI(QtWidgets.QDialog):
         self.cancel_btn.clicked.connect(self.cancel)
         self.save_btn.clicked.connect(self.save)
         self.increment_save_btn.clicked.connect(self.increment_save)
+        self.browse_btn.clicked.connect(self.browse)
 
     def _populate_scene_file_properties(self):
         """Populate the SceneFile object's properties from the UI"""
@@ -134,3 +135,14 @@ class SmartSaveUI(QtWidgets.QDialog):
     def cancel(self):
         """Quits the dialog"""
         self.close()
+
+    @QtCore.Slot()
+    def browse(self):
+        """Starts the file browse dialog"""
+        diag = QtWidgets.QFileDialog()
+        diag.setFileMode(QtWidgets.QFileDialog.Directory)
+        if diag.exec_():
+            dir_names = diag.selectedFiles()
+            # Make sure a directory was chosen!
+            if len(dir_names) >= 1:
+                self.dir_le.setText(dir_names[0])
